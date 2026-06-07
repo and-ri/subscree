@@ -2,6 +2,7 @@ import express from 'express';
 import AuthMiddleware from '../middleware/AuthMiddleware.js';
 import prisma from '../db/index.js';
 import { SubscribtionValidator } from '../validators/SubscribtionValidator.js';
+import { convert, toMonthly } from '../services/currencyService.js';
 
 const SubscribtionRouter = express.Router();
 
@@ -42,8 +43,8 @@ SubscribtionRouter.post('/', async (req, res, next) => {
             data: {
                 userId: req.userId,
                 name,
-                url,
-                logoUrl,
+                url: url || null,
+                logoUrl: logoUrl || null,
                 amount,
                 currency,
                 billingCycle,
@@ -52,12 +53,12 @@ SubscribtionRouter.post('/', async (req, res, next) => {
                 nextBillingDate,
                 cancelledAt,
                 notes,
-                categories: categories?.length ?{
+                categories: categories?.length ? {
                     connect: categories.map(categoryId => ({ id: categoryId }))
                 } : undefined,
             },
         });
-    
+
         res.status(201).json({ message: 'Subscription created successfully', subscription });
     } catch (error) {
         return next(error);
@@ -66,13 +67,15 @@ SubscribtionRouter.post('/', async (req, res, next) => {
 
 SubscribtionRouter.get('/stats', async (req, res, next) => {
     const { userId } = req;
-    
+
     try {
-        const [totalSubscriptions, totalAmount, subscriptionsByStatus, upcomingRenewals] = await prisma.$transaction([
-            prisma.subscription.count({ where: { userId } }),
-            prisma.subscription.aggregate({
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        const targetCurrency = user?.preferredCurrency ?? 'USD';
+
+        const [activeSubscriptions, subscriptionsByStatus, upcomingRenewals] = await prisma.$transaction([
+            prisma.subscription.findMany({
                 where: { userId, status: 'ACTIVE' },
-                _sum: { amount: true },
+                select: { amount: true, currency: true, billingCycle: true },
             }),
             prisma.subscription.groupBy({
                 by: ['status'],
@@ -85,16 +88,28 @@ SubscribtionRouter.get('/stats', async (req, res, next) => {
                     status: 'ACTIVE',
                     nextBillingDate: {
                         gte: new Date(),
-                        lte: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Next 30 days
+                        lte: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
                     },
                 },
                 orderBy: { nextBillingDate: 'asc' },
             }),
         ]);
 
-        res.json({ 
-            totalSubscriptions, 
-            totalAmount: totalAmount._sum.amount || 0, 
+        // Convert each active subscription to monthly equivalent in target currency
+        const monthlyAmounts = await Promise.all(
+            activeSubscriptions.map(async (sub) => {
+                const monthly = toMonthly(sub.amount, sub.billingCycle);
+                const converted = await convert(monthly, sub.currency, targetCurrency);
+                return converted ?? 0;
+            })
+        );
+
+        const totalMonthlySpend = monthlyAmounts.reduce((sum, v) => sum + v, 0);
+
+        res.json({
+            totalSubscriptions: activeSubscriptions.length,
+            totalMonthlySpend: Math.round(totalMonthlySpend * 100) / 100,
+            currency: targetCurrency,
             subscriptionsByStatus: subscriptionsByStatus.reduce((acc, item) => {
                 acc[item.status] = item._count.status;
                 return acc;
@@ -148,8 +163,8 @@ SubscribtionRouter.patch('/:id', async (req, res, next) => {
             where: { id },
             data: {
                 ...(name !== undefined && { name }),
-                ...(url !== undefined && { url }),
-                ...(logoUrl !== undefined && { logoUrl }),
+                ...(url !== undefined && { url: url || null }),
+                ...(logoUrl !== undefined && { logoUrl: logoUrl || null }),
                 ...(amount !== undefined && { amount }),
                 ...(currency !== undefined && { currency }),
                 ...(billingCycle !== undefined && { billingCycle }),

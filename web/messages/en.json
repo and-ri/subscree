@@ -1,0 +1,131 @@
+{
+  "Common": {
+    "loading": "Loading…",
+    "error": "Error",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "back": "Back",
+    "logout": "Logout",
+    "settings": "Settings",
+    "or": "or"
+  },
+  "Auth": {
+    "login": "Login",
+    "loginTitle": "Welcome back",
+    "loginDescription": "Enter your email and password to sign in.",
+    "loginFailed": "Login failed",
+    "loggingIn": "Signing in…",
+    "register": "Create account",
+    "registerTitle": "Create an account",
+    "registerDescription": "Fill in the details below to get started.",
+    "registerFailed": "Registration failed",
+    "registering": "Creating account…",
+    "email": "Email",
+    "password": "Password",
+    "name": "Full name",
+    "noAccount": "Don't have an account? Register",
+    "haveAccount": "Already have an account? Sign in"
+  },
+  "Header": {
+    "brand": "Subscription Manager"
+  },
+  "Footer": {
+    "tagline": "Track your subscriptions"
+  },
+  "Dashboard": {
+    "title": "Subscriptions",
+    "addSubscription": "Add Subscription",
+    "subscriptionCount": "{count, plural, one {# subscription} other {# subscriptions}}",
+    "noSubscriptions": "No subscriptions yet",
+    "noSubscriptionsDesc": "Add your first subscription to get started.",
+    "viewDetails": "View details",
+    "failedToLoad": "Failed to load subscriptions"
+  },
+  "Stats": {
+    "monthlySpend": "Monthly spend",
+    "activeSubscriptions": "Active subscriptions",
+    "upcomingRenewals": "Renewals in 30 days"
+  },
+  "Subscription": {
+    "new": "New Subscription",
+    "newDescription": "Fill in the details to track a new subscription.",
+    "edit": "Edit Subscription",
+    "editDescription": "Update the details for {name}.",
+    "name": "Name",
+    "namePlaceholder": "e.g. Netflix",
+    "url": "Website URL",
+    "urlPlaceholder": "https://example.com",
+    "amount": "Amount",
+    "amountPlaceholder": "0.00",
+    "currency": "Currency",
+    "selectCurrency": "Select currency",
+    "billingCycle": "Billing cycle",
+    "selectBillingCycle": "Select billing cycle",
+    "status": "Status",
+    "selectStatus": "Select status",
+    "notes": "Notes",
+    "notesPlaceholder": "Optional notes about this subscription…",
+    "startDate": "Start date",
+    "nextBillingDate": "Next billing date",
+    "cancelledAt": "Cancelled at",
+    "website": "Website",
+    "backToList": "Back to subscriptions",
+    "backToDetails": "Back to subscription",
+    "creating": "Creating…",
+    "saving": "Saving…",
+    "deleting": "Deleting…",
+    "createButton": "Create Subscription",
+    "saveButton": "Save Changes",
+    "nameAndAmountRequired": "Name and amount are required.",
+    "deleteTitle": "Delete subscription?",
+    "deleteDesc": "This will permanently delete {name}. This action cannot be undone."
+  },
+  "BillingCycle": {
+    "MONTHLY": "Monthly",
+    "YEARLY": "Yearly",
+    "WEEKLY": "Weekly",
+    "DAILY": "Daily",
+    "suffix": {
+      "MONTHLY": "/mo",
+      "YEARLY": "/yr",
+      "WEEKLY": "/wk",
+      "DAILY": "/day"
+    }
+  },
+  "Status": {
+    "ACTIVE": "Active",
+    "TRIAL": "Trial",
+    "PAUSED": "Paused",
+    "CANCELLED": "Cancelled"
+  },
+  "Settings": {
+    "title": "Settings",
+    "profile": "Profile",
+    "profileDescription": "Update your display name.",
+    "displayName": "Display name",
+    "saveProfile": "Save profile",
+    "savingProfile": "Saving…",
+    "profileSaved": "Profile updated successfully.",
+    "password": "Change password",
+    "passwordDescription": "Choose a strong new password.",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "savePassword": "Change password",
+    "savingPassword": "Saving…",
+    "passwordSaved": "Password changed successfully.",
+    "preferences": "Preferences",
+    "preferencesDescription": "Choose your language and default currency for reports.",
+    "language": "Language",
+    "preferredCurrency": "Report currency",
+    "savePreferences": "Save preferences",
+    "savingPreferences": "Saving…",
+    "preferencesSaved": "Preferences saved.",
+    "backToDashboard": "Back to dashboard"
+  },
+  "Language": {
+    "en": "English",
+    "uk": "Українська"
+  }
+}

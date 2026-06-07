@@ -1,0 +1,131 @@
+{
+  "Common": {
+    "loading": "Завантаження…",
+    "error": "Помилка",
+    "save": "Зберегти",
+    "cancel": "Скасувати",
+    "edit": "Редагувати",
+    "delete": "Видалити",
+    "back": "Назад",
+    "logout": "Вийти",
+    "settings": "Налаштування",
+    "or": "або"
+  },
+  "Auth": {
+    "login": "Увійти",
+    "loginTitle": "З поверненням",
+    "loginDescription": "Введіть email і пароль для входу.",
+    "loginFailed": "Помилка входу",
+    "loggingIn": "Вхід…",
+    "register": "Створити акаунт",
+    "registerTitle": "Створити акаунт",
+    "registerDescription": "Заповніть дані нижче щоб почати.",
+    "registerFailed": "Помилка реєстрації",
+    "registering": "Реєстрація…",
+    "email": "Email",
+    "password": "Пароль",
+    "name": "Повне ім'я",
+    "noAccount": "Немає акаунту? Зареєструватись",
+    "haveAccount": "Вже маєте акаунт? Увійти"
+  },
+  "Header": {
+    "brand": "Менеджер підписок"
+  },
+  "Footer": {
+    "tagline": "Керуйте своїми підписками"
+  },
+  "Dashboard": {
+    "title": "Підписки",
+    "addSubscription": "Додати підписку",
+    "subscriptionCount": "{count, plural, one {# підписка} few {# підписки} many {# підписок} other {# підписок}}",
+    "noSubscriptions": "Підписок ще немає",
+    "noSubscriptionsDesc": "Додайте першу підписку щоб почати.",
+    "viewDetails": "Детальніше",
+    "failedToLoad": "Не вдалося завантажити підписки"
+  },
+  "Stats": {
+    "monthlySpend": "Витрати на місяць",
+    "activeSubscriptions": "Активних підписок",
+    "upcomingRenewals": "Поновлень за 30 днів"
+  },
+  "Subscription": {
+    "new": "Нова підписка",
+    "newDescription": "Заповніть деталі для нової підписки.",
+    "edit": "Редагувати підписку",
+    "editDescription": "Оновіть деталі для {name}.",
+    "name": "Назва",
+    "namePlaceholder": "напр. Netflix",
+    "url": "Сайт",
+    "urlPlaceholder": "https://example.com",
+    "amount": "Сума",
+    "amountPlaceholder": "0.00",
+    "currency": "Валюта",
+    "selectCurrency": "Оберіть валюту",
+    "billingCycle": "Цикл оплати",
+    "selectBillingCycle": "Оберіть цикл",
+    "status": "Статус",
+    "selectStatus": "Оберіть статус",
+    "notes": "Нотатки",
+    "notesPlaceholder": "Необов'язкові нотатки про підписку…",
+    "startDate": "Дата початку",
+    "nextBillingDate": "Дата наступного платежу",
+    "cancelledAt": "Скасовано",
+    "website": "Сайт",
+    "backToList": "До списку підписок",
+    "backToDetails": "До підписки",
+    "creating": "Створення…",
+    "saving": "Збереження…",
+    "deleting": "Видалення…",
+    "createButton": "Створити підписку",
+    "saveButton": "Зберегти зміни",
+    "nameAndAmountRequired": "Назва та сума обов'язкові.",
+    "deleteTitle": "Видалити підписку?",
+    "deleteDesc": "Підписку {name} буде видалено назавжди. Цю дію неможливо скасувати."
+  },
+  "BillingCycle": {
+    "MONTHLY": "Щомісяця",
+    "YEARLY": "Щороку",
+    "WEEKLY": "Щотижня",
+    "DAILY": "Щодня",
+    "suffix": {
+      "MONTHLY": "/міс",
+      "YEARLY": "/рік",
+      "WEEKLY": "/тиж",
+      "DAILY": "/день"
+    }
+  },
+  "Status": {
+    "ACTIVE": "Активна",
+    "TRIAL": "Пробна",
+    "PAUSED": "На паузі",
+    "CANCELLED": "Скасована"
+  },
+  "Settings": {
+    "title": "Налаштування",
+    "profile": "Профіль",
+    "profileDescription": "Змініть відображуване ім'я.",
+    "displayName": "Відображуване ім'я",
+    "saveProfile": "Зберегти профіль",
+    "savingProfile": "Збереження…",
+    "profileSaved": "Профіль успішно оновлено.",
+    "password": "Зміна пароля",
+    "passwordDescription": "Оберіть надійний новий пароль.",
+    "currentPassword": "Поточний пароль",
+    "newPassword": "Новий пароль",
+    "savePassword": "Змінити пароль",
+    "savingPassword": "Збереження…",
+    "passwordSaved": "Пароль успішно змінено.",
+    "preferences": "Параметри",
+    "preferencesDescription": "Оберіть мову та валюту для звітів.",
+    "language": "Мова",
+    "preferredCurrency": "Валюта звітів",
+    "savePreferences": "Зберегти параметри",
+    "savingPreferences": "Збереження…",
+    "preferencesSaved": "Параметри збережено.",
+    "backToDashboard": "На дашборд"
+  },
+  "Language": {
+    "en": "English",
+    "uk": "Українська"
+  }
+}

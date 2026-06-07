@@ -1,8 +1,9 @@
 'use client';
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from 'next-intl';
 import { Header } from "@/components/layout/Header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -11,10 +12,15 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { fetchApi } from "@/lib/api";
+import { createSubscription, getCurrencies } from "@/lib/api";
 import { AlertCircle, ArrowLeft } from "lucide-react";
 
 export default function NewSubscriptionPage() {
+    const t = useTranslations('Subscription');
+    const tCommon = useTranslations('Common');
+    const tCycle = useTranslations('BillingCycle');
+    const tStatus = useTranslations('Status');
+
     const [formData, setFormData] = useState({
         name: '',
         url: '',
@@ -24,9 +30,14 @@ export default function NewSubscriptionPage() {
         status: 'ACTIVE',
         notes: '',
     });
+    const [currencies, setCurrencies] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const router = useRouter();
+
+    useEffect(() => {
+        getCurrencies().then(res => setCurrencies(res.currencies || []));
+    }, []);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -37,15 +48,21 @@ export default function NewSubscriptionPage() {
         e.preventDefault();
         setError(null);
         if (!formData.name || !formData.amount) {
-            setError('Name and amount are required.');
+            setError(t('nameAndAmountRequired'));
             return;
         }
         setLoading(true);
         try {
-            await fetchApi('/subscriptions', {
-                method: 'POST',
-                body: { ...formData, amount: Number(formData.amount) },
-            });
+            const payload = {
+                name:         formData.name,
+                amount:       Number(formData.amount),
+                currency:     formData.currency,
+                billingCycle: formData.billingCycle,
+                status:       formData.status,
+                url:          formData.url || undefined,
+                notes:        formData.notes || undefined,
+            };
+            await createSubscription(payload);
             router.push('/dashboard');
         } catch (err) {
             setError(err.message);
@@ -53,6 +70,9 @@ export default function NewSubscriptionPage() {
             setLoading(false);
         }
     };
+
+    const BILLING_CYCLES = ['MONTHLY', 'YEARLY', 'WEEKLY', 'DAILY'];
+    const STATUSES = ['ACTIVE', 'TRIAL', 'PAUSED'];
 
     return (
         <div className="min-h-screen flex flex-col">
@@ -62,143 +82,121 @@ export default function NewSubscriptionPage() {
                     <Button variant="ghost" size="sm" asChild className="w-fit -ml-2">
                         <Link href="/dashboard">
                             <ArrowLeft data-icon="inline-start" />
-                            Back to subscriptions
+                            {t('backToList')}
                         </Link>
                     </Button>
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>New Subscription</CardTitle>
-                            <CardDescription>Fill in the details to track a new subscription.</CardDescription>
+                            <CardTitle>{t('new')}</CardTitle>
+                            <CardDescription>{t('newDescription')}</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <form onSubmit={handleSubmit} className="flex flex-col gap-6">
                                 {error && (
                                     <Alert variant="destructive">
                                         <AlertCircle />
-                                        <AlertTitle>Error</AlertTitle>
+                                        <AlertTitle>{t('nameAndAmountRequired')}</AlertTitle>
                                         <AlertDescription>{error}</AlertDescription>
                                     </Alert>
                                 )}
                                 <FieldGroup>
                                     <Field>
-                                        <FieldLabel htmlFor="name">Name *</FieldLabel>
+                                        <FieldLabel htmlFor="name">{t('name')} *</FieldLabel>
                                         <Input
-                                            id="name"
-                                            name="name"
-                                            type="text"
-                                            value={formData.name}
-                                            onChange={handleChange}
-                                            placeholder="e.g. Netflix"
-                                            required
+                                            id="name" name="name" type="text"
+                                            value={formData.name} onChange={handleChange}
+                                            placeholder={t('namePlaceholder')} required
                                         />
                                     </Field>
                                     <Field>
-                                        <FieldLabel htmlFor="url">Website URL</FieldLabel>
+                                        <FieldLabel htmlFor="url">{t('url')}</FieldLabel>
                                         <Input
-                                            id="url"
-                                            name="url"
-                                            type="url"
-                                            value={formData.url}
-                                            onChange={handleChange}
-                                            placeholder="https://example.com"
+                                            id="url" name="url" type="url"
+                                            value={formData.url} onChange={handleChange}
+                                            placeholder={t('urlPlaceholder')}
                                         />
                                     </Field>
                                     <Field>
-                                        <FieldLabel htmlFor="amount">Amount *</FieldLabel>
+                                        <FieldLabel htmlFor="amount">{t('amount')} *</FieldLabel>
                                         <Input
-                                            id="amount"
-                                            name="amount"
-                                            type="number"
-                                            min="0"
-                                            step="0.01"
-                                            value={formData.amount}
-                                            onChange={handleChange}
-                                            placeholder="0.00"
-                                            required
+                                            id="amount" name="amount" type="number"
+                                            min="0" step="0.01"
+                                            value={formData.amount} onChange={handleChange}
+                                            placeholder={t('amountPlaceholder')} required
                                         />
                                     </Field>
                                     <Field>
-                                        <FieldLabel>Currency</FieldLabel>
+                                        <FieldLabel>{t('currency')}</FieldLabel>
                                         <Select
-                                            name="currency"
-                                            defaultValue={formData.currency}
-                                            onValueChange={(v) => setFormData(p => ({ ...p, currency: v }))}
+                                            name="currency" defaultValue={formData.currency}
+                                            onValueChange={v => setFormData(p => ({ ...p, currency: v }))}
                                         >
                                             <SelectTrigger className="w-full">
-                                                <SelectValue placeholder="Select currency" />
+                                                <SelectValue placeholder={t('selectCurrency')} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectGroup>
-                                                    <SelectItem value="USD">USD — US Dollar</SelectItem>
-                                                    <SelectItem value="EUR">EUR — Euro</SelectItem>
-                                                    <SelectItem value="UAH">UAH — Ukrainian Hryvnia</SelectItem>
+                                                    {currencies.map(c => (
+                                                        <SelectItem key={c.code} value={c.code}>
+                                                            {c.code} — {c.name}
+                                                        </SelectItem>
+                                                    ))}
                                                 </SelectGroup>
                                             </SelectContent>
                                         </Select>
                                     </Field>
                                     <Field>
-                                        <FieldLabel>Billing Cycle</FieldLabel>
+                                        <FieldLabel>{t('billingCycle')}</FieldLabel>
                                         <Select
-                                            name="billingCycle"
-                                            defaultValue={formData.billingCycle}
-                                            onValueChange={(v) => setFormData(p => ({ ...p, billingCycle: v }))}
+                                            name="billingCycle" defaultValue={formData.billingCycle}
+                                            onValueChange={v => setFormData(p => ({ ...p, billingCycle: v }))}
                                         >
                                             <SelectTrigger className="w-full">
-                                                <SelectValue placeholder="Select billing cycle" />
+                                                <SelectValue placeholder={t('selectBillingCycle')} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectGroup>
-                                                    <SelectItem value="MONTHLY">Monthly</SelectItem>
-                                                    <SelectItem value="YEARLY">Yearly</SelectItem>
-                                                    <SelectItem value="WEEKLY">Weekly</SelectItem>
-                                                    <SelectItem value="DAILY">Daily</SelectItem>
+                                                    {BILLING_CYCLES.map(c => (
+                                                        <SelectItem key={c} value={c}>{tCycle(c)}</SelectItem>
+                                                    ))}
                                                 </SelectGroup>
                                             </SelectContent>
                                         </Select>
                                     </Field>
                                     <Field>
-                                        <FieldLabel>Status</FieldLabel>
+                                        <FieldLabel>{t('status')}</FieldLabel>
                                         <Select
-                                            name="status"
-                                            defaultValue={formData.status}
-                                            onValueChange={(v) => setFormData(p => ({ ...p, status: v }))}
+                                            name="status" defaultValue={formData.status}
+                                            onValueChange={v => setFormData(p => ({ ...p, status: v }))}
                                         >
                                             <SelectTrigger className="w-full">
-                                                <SelectValue placeholder="Select status" />
+                                                <SelectValue placeholder={t('selectStatus')} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectGroup>
-                                                    <SelectItem value="ACTIVE">Active</SelectItem>
-                                                    <SelectItem value="TRIAL">Trial</SelectItem>
-                                                    <SelectItem value="PAUSED">Paused</SelectItem>
+                                                    {STATUSES.map(s => (
+                                                        <SelectItem key={s} value={s}>{tStatus(s)}</SelectItem>
+                                                    ))}
                                                 </SelectGroup>
                                             </SelectContent>
                                         </Select>
                                     </Field>
                                     <Field>
-                                        <FieldLabel htmlFor="notes">Notes</FieldLabel>
+                                        <FieldLabel htmlFor="notes">{t('notes')}</FieldLabel>
                                         <Textarea
-                                            id="notes"
-                                            name="notes"
-                                            value={formData.notes}
-                                            onChange={handleChange}
-                                            placeholder="Optional notes about this subscription…"
-                                            rows={3}
+                                            id="notes" name="notes"
+                                            value={formData.notes} onChange={handleChange}
+                                            placeholder={t('notesPlaceholder')} rows={3}
                                         />
                                     </Field>
                                 </FieldGroup>
                                 <div className="flex gap-3">
                                     <Button type="submit" disabled={loading} className="flex-1">
-                                        {loading ? 'Creating…' : 'Create Subscription'}
+                                        {loading ? t('creating') : t('createButton')}
                                     </Button>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => router.push('/dashboard')}
-                                        disabled={loading}
-                                    >
-                                        Cancel
+                                    <Button type="button" variant="outline" onClick={() => router.push('/dashboard')} disabled={loading}>
+                                        {tCommon('cancel')}
                                     </Button>
                                 </div>
                             </form>

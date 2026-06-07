@@ -3,6 +3,7 @@
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from 'next-intl';
 import { Header } from "@/components/layout/Header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -14,25 +15,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetchApi } from "@/lib/api";
+import { getSubscription, deleteSubscription } from "@/lib/api";
 import { AlertCircle, ArrowLeft } from "lucide-react";
 
-const CURRENCY_SYMBOLS = { USD: '$', EUR: '€', UAH: '₴' };
-const BILLING_LABELS = { MONTHLY: 'Monthly', YEARLY: 'Yearly', WEEKLY: 'Weekly', DAILY: 'Daily' };
 const STATUS_VARIANTS = { ACTIVE: 'default', TRIAL: 'secondary', PAUSED: 'outline', CANCELLED: 'destructive' };
 
-function formatDate(dateStr) {
+function formatDate(dateStr, locale) {
     if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-function formatAmount(amount, currency) {
-    const symbol = CURRENCY_SYMBOLS[currency] || currency;
-    return `${symbol}${Number(amount).toFixed(2)} ${currency}`;
-}
-
-function statusLabel(status) {
-    return status.charAt(0) + status.slice(1).toLowerCase();
+    return new Date(dateStr).toLocaleDateString(locale === 'uk' ? 'uk-UA' : 'en-US', {
+        month: 'short', day: 'numeric', year: 'numeric',
+    });
 }
 
 function DetailRow({ label, value }) {
@@ -46,34 +38,29 @@ function DetailRow({ label, value }) {
 
 export default function SubscriptionDetailsPage({ params }) {
     const { id } = use(params);
+    const t = useTranslations('Subscription');
+    const tCommon = useTranslations('Common');
+    const tStatus = useTranslations('Status');
+    const tCycle = useTranslations('BillingCycle');
+
     const [subscription, setSubscription] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [deleting, setDeleting] = useState(false);
-
     const router = useRouter();
 
     useEffect(() => {
-        const fetchSubscription = async () => {
-            setLoading(true);
-            setError(null);
-            try {
-                const response = await fetchApi(`/subscriptions/${id}`);
-                setSubscription(response.subscription);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchSubscription();
+        setLoading(true);
+        getSubscription(id)
+            .then(res => setSubscription(res.subscription))
+            .catch(err => setError(err.message))
+            .finally(() => setLoading(false));
     }, [id]);
 
     const handleDelete = async () => {
         setDeleting(true);
         try {
-            await fetchApi(`/subscriptions/${id}`, { method: 'DELETE' });
+            await deleteSubscription(id);
             router.push('/dashboard');
         } catch (err) {
             setError(err.message);
@@ -91,7 +78,7 @@ export default function SubscriptionDetailsPage({ params }) {
                     <Button variant="ghost" size="sm" asChild className="w-fit -ml-2">
                         <Link href="/dashboard">
                             <ArrowLeft data-icon="inline-start" />
-                            Back to subscriptions
+                            {t('backToList')}
                         </Link>
                     </Button>
 
@@ -122,30 +109,37 @@ export default function SubscriptionDetailsPage({ params }) {
                                 {sub.notes && <CardDescription>{sub.notes}</CardDescription>}
                                 <CardAction>
                                     <Badge variant={STATUS_VARIANTS[sub.status] || 'outline'}>
-                                        {statusLabel(sub.status)}
+                                        {tStatus(sub.status)}
                                     </Badge>
                                 </CardAction>
                             </CardHeader>
                             <CardContent>
                                 <div className="flex flex-col">
-                                    <DetailRow label="Amount" value={formatAmount(sub.amount, sub.currency)} />
+                                    <DetailRow
+                                        label={t('amount')}
+                                        value={new Intl.NumberFormat('en', {
+                                            style: 'currency',
+                                            currency: sub.currency,
+                                            minimumFractionDigits: 2,
+                                        }).format(sub.amount)}
+                                    />
                                     <Separator />
-                                    <DetailRow label="Billing cycle" value={BILLING_LABELS[sub.billingCycle] || sub.billingCycle} />
+                                    <DetailRow label={t('billingCycle')} value={tCycle(sub.billingCycle)} />
                                     <Separator />
-                                    <DetailRow label="Next billing date" value={formatDate(sub.nextBillingDate)} />
+                                    <DetailRow label={t('nextBillingDate')} value={formatDate(sub.nextBillingDate)} />
                                     <Separator />
-                                    <DetailRow label="Start date" value={formatDate(sub.startDate)} />
+                                    <DetailRow label={t('startDate')} value={formatDate(sub.startDate)} />
                                     {sub.cancelledAt && (
                                         <>
                                             <Separator />
-                                            <DetailRow label="Cancelled at" value={formatDate(sub.cancelledAt)} />
+                                            <DetailRow label={t('cancelledAt')} value={formatDate(sub.cancelledAt)} />
                                         </>
                                     )}
                                     {sub.url && (
                                         <>
                                             <Separator />
                                             <div className="flex items-center justify-between py-3">
-                                                <span className="text-sm text-muted-foreground">Website</span>
+                                                <span className="text-sm text-muted-foreground">{t('website')}</span>
                                                 <a
                                                     href={sub.url}
                                                     target="_blank"
@@ -162,25 +156,25 @@ export default function SubscriptionDetailsPage({ params }) {
                             <CardFooter>
                                 <div className="flex gap-2">
                                     <Button variant="outline" asChild>
-                                        <Link href={`/dashboard/${id}/edit`}>Edit</Link>
+                                        <Link href={`/dashboard/${id}/edit`}>{tCommon('edit')}</Link>
                                     </Button>
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                             <Button variant="destructive" disabled={deleting}>
-                                                {deleting ? 'Deleting…' : 'Delete'}
+                                                {deleting ? t('deleting') : tCommon('delete')}
                                             </Button>
                                         </AlertDialogTrigger>
                                         <AlertDialogContent>
                                             <AlertDialogHeader>
-                                                <AlertDialogTitle>Delete subscription?</AlertDialogTitle>
+                                                <AlertDialogTitle>{t('deleteTitle')}</AlertDialogTitle>
                                                 <AlertDialogDescription>
-                                                    This will permanently delete <strong>{sub.name}</strong>. This action cannot be undone.
+                                                    {t('deleteDesc', { name: sub.name })}
                                                 </AlertDialogDescription>
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
                                                 <AlertDialogAction variant="destructive" onClick={handleDelete}>
-                                                    Delete
+                                                    {tCommon('delete')}
                                                 </AlertDialogAction>
                                             </AlertDialogFooter>
                                         </AlertDialogContent>

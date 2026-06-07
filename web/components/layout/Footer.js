@@ -1,6 +1,10 @@
+'use client';
+
+import { useTranslations } from 'next-intl';
 import { Separator } from "@/components/ui/separator";
 
 export function Footer() {
+    const t = useTranslations('Footer');
     const year = new Date().getFullYear();
 
     return (
@@ -11,7 +15,7 @@ export function Footer() {
                     © {year} Subscription Manager
                 </p>
                 <p className="text-sm text-muted-foreground">
-                    Track your subscriptions
+                    {t('tagline')}
                 </p>
             </div>
         </footer>
