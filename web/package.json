@@ -30,14 +30,5 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.7",
     "tailwindcss": "^4"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@parcel/watcher",
-      "@swc/core",
-      "msw",
-      "sharp",
-      "unrs-resolver"
-    ]
   }
 }
