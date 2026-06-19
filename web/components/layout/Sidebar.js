@@ -7,10 +7,11 @@ import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 import {
     LayoutDashboard, BarChart2, Tag, Wallet, Settings,
-    LogOut, Menu, X, Sun, Moon, Monitor, CreditCard,
+    LogOut, Menu, X, Sun, Moon, Monitor,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Logo } from '@/components/ui/Logo';
 
 function useNavItems() {
     const t = useTranslations('Nav');
@@ -76,7 +77,7 @@ function SidebarContent({ onLinkClick }) {
             {/* Brand */}
             <div className="px-3 py-4 border-b">
                 <Link href="/dashboard" onClick={onLinkClick} className="flex items-center gap-2">
-                    <CreditCard className="h-5 w-5 text-primary" />
+                    <Logo className="h-6 w-6" />
                     <span className="font-bold text-sm">Nook</span>
                 </Link>
             </div>
@@ -113,7 +114,7 @@ export function Sidebar() {
             {/* Mobile: top bar */}
             <div className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 h-14 border-b bg-background">
                 <Link href="/dashboard" className="flex items-center gap-2 font-bold text-sm">
-                    <CreditCard className="h-5 w-5 text-primary" />
+                    <Logo className="h-6 w-6" />
                     Nook
                 </Link>
                 <button
