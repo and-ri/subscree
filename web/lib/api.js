@@ -41,6 +41,23 @@ export const updatePassword = (data) => fetchApi('/users/me/password', { method:
 export const forgotPassword = (email) => fetchApi('/auth/forgot-password', { method: 'POST', body: { email } });
 export const resetPassword = (token, password) => fetchApi('/auth/reset-password', { method: 'POST', body: { token, password } });
 
+// Invitations (public lookup) + auth
+export const getInvitationInfo = (token) => fetchApi(`/auth/invitation/${encodeURIComponent(token)}`);
+export const register = (data) => fetchApi('/auth/register', { method: 'POST', body: data });
+
+// Teams
+export const getTeams = () => fetchApi('/teams');
+export const createTeam = (name) => fetchApi('/teams', { method: 'POST', body: { name } });
+export const activateTeam = (id) => fetchApi(`/teams/${id}/activate`, { method: 'POST' });
+export const renameTeam = (id, name) => fetchApi(`/teams/${id}`, { method: 'PATCH', body: { name } });
+export const deleteTeam = (id) => fetchApi(`/teams/${id}`, { method: 'DELETE' });
+export const getTeamMembers = (id) => fetchApi(`/teams/${id}/members`);
+export const inviteMember = (id, email, role) => fetchApi(`/teams/${id}/invitations`, { method: 'POST', body: { email, ...(role && { role }) } });
+export const revokeInvitation = (id, invitationId) => fetchApi(`/teams/${id}/invitations/${invitationId}`, { method: 'DELETE' });
+export const removeMember = (id, userId) => fetchApi(`/teams/${id}/members/${userId}`, { method: 'DELETE' });
+export const leaveTeam = (id) => fetchApi(`/teams/${id}/leave`, { method: 'POST' });
+export const acceptInvitation = (token) => fetchApi('/teams/invitations/accept', { method: 'POST', body: { token } });
+
 // Currencies
 export const getCurrencies = () => fetchApi('/currencies');
 

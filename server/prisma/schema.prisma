@@ -31,15 +31,27 @@ enum DigestFrequency {
     MONTHLY
 }
 
+enum TeamRole {
+    OWNER
+    MEMBER
+}
+
 model User {
     id                String          @id @default(uuid())
     email             String          @unique
     passwordHash      String
     name              String
     preferredCurrency String          @default("USD")
+
+    // Entities this user created (ownership is by team; this is "created by")
     subscriptions     Subscription[]
     categories        Category[]
     paymentMethods    PaymentMethod[]
+
+    // Teams
+    memberships  TeamMember[]
+    activeTeamId String?
+    activeTeam   Team?       @relation("ActiveTeam", fields: [activeTeamId], references: [id], onDelete: SetNull)
 
     // Payment reminder notifications
     notifyEnabled         Boolean          @default(false)
@@ -56,8 +68,50 @@ model User {
     updatedAt         DateTime        @updatedAt
 }
 
+model Team {
+    id             String           @id @default(uuid())
+    name           String
+    members        TeamMember[]
+    invitations    TeamInvitation[]
+    subscriptions  Subscription[]
+    categories     Category[]
+    paymentMethods PaymentMethod[]
+    activeForUsers User[]           @relation("ActiveTeam")
+    createdAt      DateTime         @default(now())
+    updatedAt      DateTime         @updatedAt
+}
+
+model TeamMember {
+    id        String   @id @default(uuid())
+    teamId    String
+    team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+    userId    String
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    role      TeamRole @default(MEMBER)
+    createdAt DateTime @default(now())
+
+    @@unique([teamId, userId])
+}
+
+model TeamInvitation {
+    id          String   @id @default(uuid())
+    teamId      String
+    team        Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+    email       String
+    role        TeamRole @default(MEMBER)
+    tokenHash   String   @unique
+    expiresAt   DateTime
+    invitedById String?
+    createdAt   DateTime @default(now())
+
+    @@index([email])
+    @@index([teamId])
+}
+
 model PaymentMethod {
     id            String         @id @default(uuid())
+    teamId        String
+    team          Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
     userId        String
     user          User           @relation(fields: [userId], references: [id])
     name          String
@@ -66,10 +120,14 @@ model PaymentMethod {
     subscriptions Subscription[]
     createdAt     DateTime       @default(now())
     updatedAt     DateTime       @updatedAt
+
+    @@index([teamId])
 }
 
 model Subscription {
     id              String            @id @default(uuid())
+    teamId          String
+    team            Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
     userId          String
     user            User              @relation(fields: [userId], references: [id])
     name            String
@@ -90,14 +148,20 @@ model Subscription {
     reminderSentForDate DateTime?
     createdAt       DateTime          @default(now())
     updatedAt       DateTime          @updatedAt
+
+    @@index([teamId])
 }
 
 model Category {
     id            String         @id @default(uuid())
     name          String
     subscriptions Subscription[]
+    teamId        String
+    team          Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
     userId        String
     user          User           @relation(fields: [userId], references: [id])
     createdAt     DateTime       @default(now())
     updatedAt     DateTime       @updatedAt
+
+    @@index([teamId])
 }

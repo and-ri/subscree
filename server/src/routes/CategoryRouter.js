@@ -1,18 +1,20 @@
 import express from 'express';
 import AuthMiddleware from '../middleware/AuthMiddleware.js';
+import TeamMiddleware from '../middleware/TeamMiddleware.js';
 import prisma from '../db/index.js';
 import { CategoryValidator } from '../validators/CategoryValidator.js';
 
 const CategoryRouter = express.Router();
 
 CategoryRouter.use(AuthMiddleware);
+CategoryRouter.use(TeamMiddleware);
 
 CategoryRouter.get('/', async (req, res, next) => {
-    const { userId } = req;
+    const { teamId } = req;
 
     try {
         const categories = await prisma.category.findMany({
-            where: { userId },
+            where: { teamId },
         });
 
         res.json({ categories });
@@ -32,7 +34,7 @@ CategoryRouter.post('/', async (req, res, next) => {
 
     try {
         const existingCategory = await prisma.category.findFirst({
-            where: { name, userId: req.userId },
+            where: { name, teamId: req.teamId },
         });
 
         if (existingCategory) {
@@ -41,6 +43,7 @@ CategoryRouter.post('/', async (req, res, next) => {
 
         const category = await prisma.category.create({
             data: {
+                teamId: req.teamId,
                 userId: req.userId,
                 name,
             },
@@ -64,7 +67,7 @@ CategoryRouter.patch('/:id', async (req, res, next) => {
 
     try {
         const existingCategory = await prisma.category.findFirst({
-            where: { name, userId: req.userId, id: { not: id } },
+            where: { name, teamId: req.teamId, id: { not: id } },
         });
 
         if (existingCategory) {
@@ -72,7 +75,7 @@ CategoryRouter.patch('/:id', async (req, res, next) => {
         }
 
         const category = await prisma.category.updateMany({
-            where: { id, userId: req.userId },
+            where: { id, teamId: req.teamId },
             data: { name },
         });
 
@@ -91,7 +94,7 @@ CategoryRouter.delete('/:id', async (req, res, next) => {
 
     try {
         const category = await prisma.category.deleteMany({
-            where: { id, userId: req.userId },
+            where: { id, teamId: req.teamId },
         });
 
         if (category.count === 0) {

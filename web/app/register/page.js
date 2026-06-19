@@ -1,7 +1,7 @@
 'use client';
 
-import { fetchApi } from "@/lib/api";
-import { useState } from "react";
+import { register as registerUser, getInvitationInfo } from "@/lib/api";
+import { useEffect, useState } from "react";
 import { useTranslations } from 'next-intl';
 import { Field, FieldDescription, FieldGroup, FieldLabel, FieldSet, FieldLegend } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -19,26 +19,34 @@ export default function RegisterPage() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [inviteToken, setInviteToken] = useState(null);
+    const [emailLocked, setEmailLocked] = useState(false);
     const router = useRouter();
+
+    useEffect(() => {
+        const token = new URLSearchParams(window.location.search).get('invite');
+        if (!token) return;
+        setInviteToken(token);
+        getInvitationInfo(token)
+            .then(info => { setEmail(info.email); setEmailLocked(true); })
+            .catch(() => {});
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!name || !email || !password || !confirmPassword) {
-            setError('Please fill in all fields');
+            setError(t('fillAllFields'));
             return;
         }
         if (password !== confirmPassword) {
-            setError('Passwords do not match');
+            setError(t('passwordsDoNotMatch'));
             return;
         }
         setLoading(true);
         setError(null);
         try {
-            await fetchApi('/auth/register', {
-                method: 'POST',
-                body: { name, email, password },
-            });
-            router.push('/login');
+            await registerUser({ name, email, password, ...(inviteToken && { inviteToken }) });
+            router.push(inviteToken ? `/login?invite=${encodeURIComponent(inviteToken)}` : '/login');
         } catch (err) {
             setError(err.message);
         } finally {
@@ -73,6 +81,7 @@ export default function RegisterPage() {
                                     <Input
                                         id="input-email" type="email"
                                         value={email} onChange={e => setEmail(e.target.value)}
+                                        disabled={emailLocked}
                                     />
                                 </Field>
                                 <Field>
@@ -83,7 +92,7 @@ export default function RegisterPage() {
                                     />
                                 </Field>
                                 <Field>
-                                    <FieldLabel htmlFor="input-confirm">Confirm password</FieldLabel>
+                                    <FieldLabel htmlFor="input-confirm">{t('confirmPassword')}</FieldLabel>
                                     <Input
                                         id="input-confirm" type="password"
                                         value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}

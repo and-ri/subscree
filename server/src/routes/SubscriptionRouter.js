@@ -1,5 +1,6 @@
 import express from 'express';
 import AuthMiddleware from '../middleware/AuthMiddleware.js';
+import TeamMiddleware from '../middleware/TeamMiddleware.js';
 import prisma from '../db/index.js';
 import { SubscribtionValidator } from '../validators/SubscribtionValidator.js';
 import { convert, toMonthly } from '../services/currencyService.js';
@@ -7,6 +8,7 @@ import { advanceOverdueBillingDates } from '../services/billingService.js';
 
 const SubscribtionRouter = express.Router();
 SubscribtionRouter.use(AuthMiddleware);
+SubscribtionRouter.use(TeamMiddleware);
 
 const SUBSCRIPTION_INCLUDE = {
     categories:    true,
@@ -14,20 +16,20 @@ const SUBSCRIPTION_INCLUDE = {
 };
 
 SubscribtionRouter.get('/', async (req, res, next) => {
-    const { userId } = req;
+    const { userId, teamId } = req;
     const { status } = req.query;
     const page  = parseInt(req.query.page)  || 1;
     const limit = parseInt(req.query.limit) || 100;
     const skip  = (page - 1) * limit;
 
     try {
-        await advanceOverdueBillingDates(userId);
+        await advanceOverdueBillingDates(teamId);
 
         const user = await prisma.user.findUnique({ where: { id: userId } });
         const targetCurrency = user?.preferredCurrency ?? 'USD';
 
         const subscriptions = await prisma.subscription.findMany({
-            where:   { userId, ...(status && { status }) },
+            where:   { teamId, ...(status && { status }) },
             include: SUBSCRIPTION_INCLUDE,
             orderBy: { createdAt: 'desc' },
             skip,
@@ -64,6 +66,7 @@ SubscribtionRouter.post('/', async (req, res, next) => {
     try {
         const subscription = await prisma.subscription.create({
             data: {
+                teamId: req.teamId,
                 userId: req.userId,
                 name, amount, currency, billingCycle, status,
                 url:             url             || null,
@@ -84,26 +87,26 @@ SubscribtionRouter.post('/', async (req, res, next) => {
 });
 
 SubscribtionRouter.get('/stats', async (req, res, next) => {
-    const { userId } = req;
+    const { userId, teamId } = req;
     try {
-        await advanceOverdueBillingDates(userId);
+        await advanceOverdueBillingDates(teamId);
 
         const user = await prisma.user.findUnique({ where: { id: userId } });
         const targetCurrency = user?.preferredCurrency ?? 'USD';
 
         const [activeSubscriptions, subscriptionsByStatus, upcomingRenewals] = await prisma.$transaction([
             prisma.subscription.findMany({
-                where:   { userId, status: 'ACTIVE' },
+                where:   { teamId, status: 'ACTIVE' },
                 select:  { amount: true, currency: true, billingCycle: true },
             }),
             prisma.subscription.groupBy({
                 by:    ['status'],
-                where: { userId },
+                where: { teamId },
                 _count: { status: true },
             }),
             prisma.subscription.findMany({
                 where: {
-                    userId,
+                    teamId,
                     status: 'ACTIVE',
                     nextBillingDate: {
                         gte: new Date(),
@@ -141,10 +144,10 @@ SubscribtionRouter.get('/stats', async (req, res, next) => {
 
 SubscribtionRouter.get('/:id', async (req, res, next) => {
     const { id } = req.params;
-    const { userId } = req;
+    const { teamId } = req;
     try {
         const subscription = await prisma.subscription.findFirst({
-            where:   { id, userId },
+            where:   { id, teamId },
             include: SUBSCRIPTION_INCLUDE,
         });
         if (!subscription) return res.status(404).json({ message: 'Subscription not found' });
@@ -154,7 +157,7 @@ SubscribtionRouter.get('/:id', async (req, res, next) => {
 
 SubscribtionRouter.patch('/:id', async (req, res, next) => {
     const { id } = req.params;
-    const { userId } = req;
+    const { teamId } = req;
     const result = SubscribtionValidator.update.safeParse(req.body);
     if (!result.success) return res.status(400).json({ message: result.error.issues[0].message });
 
@@ -165,7 +168,7 @@ SubscribtionRouter.patch('/:id', async (req, res, next) => {
     } = result.data;
 
     try {
-        const existing = await prisma.subscription.findFirst({ where: { id, userId } });
+        const existing = await prisma.subscription.findFirst({ where: { id, teamId } });
         if (!existing) return res.status(404).json({ message: 'Subscription not found' });
 
         const subscription = await prisma.subscription.update({
@@ -195,9 +198,9 @@ SubscribtionRouter.patch('/:id', async (req, res, next) => {
 
 SubscribtionRouter.delete('/:id', async (req, res, next) => {
     const { id } = req.params;
-    const { userId } = req;
+    const { teamId } = req;
     try {
-        const existing = await prisma.subscription.findFirst({ where: { id, userId } });
+        const existing = await prisma.subscription.findFirst({ where: { id, teamId } });
         if (!existing) return res.status(404).json({ message: 'Subscription not found' });
         await prisma.subscription.delete({ where: { id } });
         res.json({ message: 'Subscription deleted' });

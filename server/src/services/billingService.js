@@ -12,13 +12,13 @@ function addPeriod(date, billingCycle) {
 }
 
 // Advance nextBillingDate for any active subscription whose date is in the past.
-// Called lazily on each fetch so no cron job is needed.
-export async function advanceOverdueBillingDates(userId) {
+// Called lazily on each fetch so no cron job is needed. Scoped to a team.
+export async function advanceOverdueBillingDates(teamId) {
     const now = new Date();
 
     const overdue = await prisma.subscription.findMany({
         where: {
-            userId,
+            teamId,
             status: 'ACTIVE',
             nextBillingDate: { lt: now },
         },

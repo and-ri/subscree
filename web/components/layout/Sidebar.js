@@ -2,16 +2,18 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 import {
     LayoutDashboard, BarChart2, Tag, Wallet, Settings,
-    LogOut, Menu, X, Sun, Moon, Monitor,
+    LogOut, Menu, X, Sun, Moon, Monitor, Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/ui/Logo';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { getTeams, activateTeam } from '@/lib/api';
 
 function useNavItems() {
     const t = useTranslations('Nav');
@@ -20,8 +22,45 @@ function useNavItems() {
         { href: '/dashboard/reports',         icon: BarChart2,       label: t('reports') },
         { href: '/dashboard/categories',      icon: Tag,             label: t('categories') },
         { href: '/dashboard/payment-methods', icon: Wallet,          label: t('paymentMethods') },
+        { href: '/dashboard/team',            icon: Users,           label: t('team') },
         { href: '/dashboard/settings',        icon: Settings,        label: t('settings') },
     ];
+}
+
+function TeamSwitcher() {
+    const t = useTranslations('Team');
+    const [teams, setTeams] = useState([]);
+    const [activeId, setActiveId] = useState(null);
+
+    useEffect(() => {
+        getTeams()
+            .then(r => { setTeams(r.teams || []); setActiveId(r.activeTeamId ?? null); })
+            .catch(() => {});
+    }, []);
+
+    if (teams.length === 0) return null;
+
+    const handleChange = async (id) => {
+        if (id === activeId) return;
+        try { await activateTeam(id); window.location.reload(); } catch { /* ignore */ }
+    };
+
+    return (
+        <div className="px-3 py-2 border-b">
+            <Select value={activeId ?? undefined} onValueChange={handleChange}>
+                <SelectTrigger className="w-full h-9">
+                    <SelectValue placeholder={t('selectTeam')} />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectGroup>
+                        {teams.map(tm => (
+                            <SelectItem key={tm.id} value={tm.id}>{tm.name}</SelectItem>
+                        ))}
+                    </SelectGroup>
+                </SelectContent>
+            </Select>
+        </div>
+    );
 }
 
 function ThemeCycleButton() {
@@ -81,6 +120,9 @@ function SidebarContent({ onLinkClick }) {
                     <span className="font-bold text-sm">Nook</span>
                 </Link>
             </div>
+
+            {/* Team switcher */}
+            <TeamSwitcher />
 
             {/* Nav */}
             <nav className="flex-1 px-2 py-4 flex flex-col gap-1 overflow-y-auto">

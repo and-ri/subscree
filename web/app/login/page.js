@@ -1,6 +1,6 @@
 'use client';
 
-import { fetchApi } from "@/lib/api";
+import { fetchApi, acceptInvitation } from "@/lib/api";
 import { useState } from "react";
 import { useTranslations } from 'next-intl';
 import { Field, FieldDescription, FieldGroup, FieldLabel, FieldSet, FieldLegend } from "@/components/ui/field";
@@ -33,6 +33,12 @@ export default function LoginPage() {
                 body: { email, password },
             });
             document.cookie = `token=${response.token}; path=/; max-age=604800`;
+
+            // If arriving from an invite link, accept it now that we're authed.
+            const invite = new URLSearchParams(window.location.search).get('invite');
+            if (invite) {
+                try { await acceptInvitation(invite); } catch { /* mismatch/expired — ignore */ }
+            }
             router.push('/dashboard');
         } catch (err) {
             setError(err.message);

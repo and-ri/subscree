@@ -19,9 +19,10 @@ function appUrl() {
 }
 
 const registerSchema = z.object({
-    email:    z.email('Invalid email address'),
-    name:     z.string().min(1, 'Name is required').max(100),
-    password: z.string().min(8, 'Password must be at least 8 characters'),
+    email:       z.email('Invalid email address'),
+    name:        z.string().min(1, 'Name is required').max(100),
+    password:    z.string().min(8, 'Password must be at least 8 characters'),
+    inviteToken: z.string().optional(),
 });
 
 const loginSchema = z.object({
@@ -48,11 +49,37 @@ AuthRouter.post('/register', async (req, res, next) => {
         return res.status(400).json({ message: result.error.issues[0].message });
     }
 
-    const { email, name, password } = result.data;
+    const { email, name, password, inviteToken } = result.data;
     const passwordHash = bcrypt.hashSync(password, 10);
 
     try {
+        // Resolve a valid invitation up front (if one was supplied). A bad or
+        // mismatched token is ignored — the user simply gets a personal team.
+        let invitation = null;
+        if (inviteToken) {
+            invitation = await prisma.teamInvitation.findUnique({ where: { tokenHash: hashToken(inviteToken) } });
+            if (invitation && (invitation.expiresAt < new Date() ||
+                invitation.email.toLowerCase() !== email.toLowerCase())) {
+                invitation = null;
+            }
+        }
+
         const user = await prisma.user.create({ data: { email, name, passwordHash } });
+
+        if (invitation) {
+            await prisma.$transaction([
+                prisma.teamMember.create({ data: { teamId: invitation.teamId, userId: user.id, role: invitation.role } }),
+                prisma.teamInvitation.delete({ where: { id: invitation.id } }),
+                prisma.user.update({ where: { id: user.id }, data: { activeTeamId: invitation.teamId } }),
+            ]);
+        } else {
+            // Every user needs a team — create a personal one they own.
+            const team = await prisma.team.create({
+                data: { name: `${name}'s Team`, members: { create: { userId: user.id, role: 'OWNER' } } },
+            });
+            await prisma.user.update({ where: { id: user.id }, data: { activeTeamId: team.id } });
+        }
+
         res.status(201).json({ message: 'User registered successfully', user: safeUser(user) });
     } catch (error) {
         if (error.code === 'P2002') {
@@ -86,6 +113,20 @@ AuthRouter.post('/login', async (req, res, next) => {
     } catch (error) {
         return next(error);
     }
+});
+
+// Public: look up a pending invitation by token (for the invite/register UI).
+AuthRouter.get('/invitation/:token', async (req, res, next) => {
+    try {
+        const invitation = await prisma.teamInvitation.findUnique({
+            where:   { tokenHash: hashToken(req.params.token) },
+            include: { team: { select: { name: true } } },
+        });
+        if (!invitation || invitation.expiresAt < new Date()) {
+            return res.status(404).json({ message: 'Invalid or expired invitation' });
+        }
+        res.json({ email: invitation.email, teamName: invitation.team.name });
+    } catch (err) { next(err); }
 });
 
 AuthRouter.post('/forgot-password', async (req, res, next) => {
