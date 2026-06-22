@@ -1,5 +1,7 @@
 'use client';
 
+import { trackEvent, identifyUser, apiEventName, eventDataForBody } from '@/lib/analytics';
+
 function getToken() {
     if (typeof document === 'undefined') return null;
     return document.cookie
@@ -12,8 +14,10 @@ export async function fetchApi(path, options = {}) {
     const url = `/api${path}`;
     const token = getToken();
 
+    const method = options.method || 'GET';
+
     const response = await fetch(url, {
-        method: options.method || 'GET',
+        method,
         headers: {
             'Content-Type': 'application/json',
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -24,12 +28,27 @@ export async function fetchApi(path, options = {}) {
 
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        // Surface failed auth funnel steps; the rest are covered on success below.
+        const failed = apiEventName(method, path);
+        if (failed === 'login' || failed === 'signup') {
+            trackEvent(`${failed}_failed`, { status: response.status });
+        }
         throw new Error(errorData.message || `Request failed: ${response.status}`);
     }
 
-    if (response.status === 204) return null;
+    const data = response.status === 204 ? null : await response.json();
 
-    return response.json();
+    // Emit a semantic analytics event for every recognised mutation, and tie
+    // the session to the user the moment they log in.
+    const eventName = apiEventName(method, path);
+    if (eventName) {
+        trackEvent(eventName, eventDataForBody(eventName, options.body));
+    }
+    if (eventName === 'login' && data?.user) {
+        identifyUser(data.user.id, { email: data.user.email, name: data.user.name });
+    }
+
+    return data;
 }
 
 // User

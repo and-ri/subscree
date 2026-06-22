@@ -44,6 +44,9 @@ services:
       - "3001:3001"
     environment:
       API_BASE_URL: http://server:3001
+      # Umami analytics (optional) — set both to enable tracking
+      UMAMI_SCRIPT_URL: ${UMAMI_SCRIPT_URL:-}
+      UMAMI_WEBSITE_ID: ${UMAMI_WEBSITE_ID:-}
     depends_on:
       - server
 

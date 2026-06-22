@@ -1,3 +1,4 @@
+import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
@@ -16,6 +17,12 @@ export default async function RootLayout({ children }) {
     const locale   = await getLocale();
     const messages = await getMessages();
 
+    // Read at request time (this layout renders dynamically via next-intl), so
+    // the same standalone build/image works in any environment — see the /api
+    // proxy for the same runtime-config approach.
+    const umamiSrc       = process.env.UMAMI_SCRIPT_URL;
+    const umamiWebsiteId = process.env.UMAMI_WEBSITE_ID;
+
     return (
         <html
             lang={locale}
@@ -28,6 +35,13 @@ export default async function RootLayout({ children }) {
                         {children}
                     </NextIntlClientProvider>
                 </ThemeProvider>
+                {umamiSrc && umamiWebsiteId && (
+                    <Script
+                        src={umamiSrc}
+                        data-website-id={umamiWebsiteId}
+                        strategy="afterInteractive"
+                    />
+                )}
             </body>
         </html>
     );

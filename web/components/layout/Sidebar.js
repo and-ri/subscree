@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/ui/Logo';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getTeams, activateTeam } from '@/lib/api';
+import { trackEvent } from '@/lib/analytics';
 
 function useNavItems() {
     const t = useTranslations('Nav');
@@ -107,6 +108,7 @@ function SidebarContent({ onLinkClick }) {
     const navItems = useNavItems();
 
     const handleLogout = () => {
+        trackEvent('logout');
         document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         window.location.href = '/login';
     };
