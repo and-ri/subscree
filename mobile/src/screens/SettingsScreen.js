@@ -93,6 +93,8 @@ export default function SettingsScreen({ navigation }) {
 
   // Account deletion
   const [deletionRequestedAt, setDeletionRequestedAt] = useState(null);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteErr, setDeleteErr] = useState(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [restoreBusy, setRestoreBusy] = useState(false);
 
@@ -187,11 +189,13 @@ export default function SettingsScreen({ navigation }) {
           text: t('deleteAccountAction'),
           style: 'destructive',
           onPress: async () => {
+            setDeleteErr(null);
             setDeleteBusy(true);
             try {
-              await deleteAccount();
+              await deleteAccount(deletePassword);
               await signOut(); // restorable for 7 days
-            } catch {
+            } catch (e) {
+              setDeleteErr(e.message);
               setDeleteBusy(false);
             }
           },
@@ -431,11 +435,29 @@ export default function SettingsScreen({ navigation }) {
                 </Button>
               </>
             ) : (
-              <Button action="negative" onPress={confirmDelete} isDisabled={deleteBusy}>
-                {deleteBusy && <ButtonSpinner className="mr-2" />}
-                <Ionicons name="trash-outline" size={16} color="white" style={{ marginRight: 8 }} />
-                <ButtonText>{deleteBusy ? t('deleting') : t('deleteAccount')}</ButtonText>
-              </Button>
+              <>
+                <Field label={t('deleteAccountPasswordLabel')}>
+                  <Input>
+                    <InputField
+                      value={deletePassword}
+                      onChangeText={setDeletePassword}
+                      secureTextEntry
+                      autoComplete="current-password"
+                      textContentType="password"
+                    />
+                  </Input>
+                </Field>
+                {!!deleteErr && (
+                  <Alert action="error" variant="outline">
+                    <AlertText>{deleteErr}</AlertText>
+                  </Alert>
+                )}
+                <Button action="negative" onPress={confirmDelete} isDisabled={deleteBusy || !deletePassword}>
+                  {deleteBusy && <ButtonSpinner className="mr-2" />}
+                  <Ionicons name="trash-outline" size={16} color="white" style={{ marginRight: 8 }} />
+                  <ButtonText>{deleteBusy ? t('deleting') : t('deleteAccount')}</ButtonText>
+                </Button>
+              </>
             )}
           </SectionCard>
 

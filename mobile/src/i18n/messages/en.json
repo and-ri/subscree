@@ -205,7 +205,8 @@
     "cancel": "Cancel",
     "deletionScheduled": "Your account is scheduled for deletion on {date}.",
     "restoreAccount": "Restore account",
-    "restoring": "Restoring…"
+    "restoring": "Restoring…",
+    "deleteAccountPasswordLabel": "Enter your password to confirm"
   },
   "Language": {
     "en": "English",

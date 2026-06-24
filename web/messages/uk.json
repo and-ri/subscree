@@ -194,7 +194,8 @@
     "cancel": "Скасувати",
     "deletionScheduled": "Ваш акаунт заплановано до видалення {date}.",
     "restoreAccount": "Відновити акаунт",
-    "restoring": "Відновлення…"
+    "restoring": "Відновлення…",
+    "deleteAccountPasswordLabel": "Введіть пароль для підтвердження"
   },
   "Language": {
     "en": "English",

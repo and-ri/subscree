@@ -49,7 +49,7 @@ export const getMe = () => fetchApi('/users/me');
 export const updateMe = (data) => fetchApi('/users/me', { method: 'PATCH', body: data });
 export const updatePassword = (data) =>
   fetchApi('/users/me/password', { method: 'PATCH', body: data });
-export const deleteAccount = () => fetchApi('/users/me', { method: 'DELETE' });
+export const deleteAccount = (password) => fetchApi('/users/me', { method: 'DELETE', body: { password } });
 export const restoreAccount = () => fetchApi('/users/me/restore', { method: 'POST' });
 
 // Push notifications

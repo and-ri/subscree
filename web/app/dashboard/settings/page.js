@@ -78,6 +78,9 @@ export default function SettingsPage() {
     const [notifySuccess, setNotifySuccess] = useState(false);
 
     // Account deletion
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [deletePassword, setDeletePassword] = useState('');
+    const [deleteError, setDeleteError] = useState(null);
     const [deleteBusy, setDeleteBusy] = useState(false);
     const [restoreBusy, setRestoreBusy] = useState(false);
 
@@ -177,11 +180,13 @@ export default function SettingsPage() {
     };
 
     const handleDeleteAccount = async () => {
+        setDeleteError(null);
         setDeleteBusy(true);
         try {
-            await deleteAccount();
+            await deleteAccount(deletePassword);
             signOut(); // navigates away; account is restorable for 7 days
-        } catch {
+        } catch (err) {
+            setDeleteError(err.message);
             setDeleteBusy(false);
         }
     };
@@ -509,11 +514,17 @@ export default function SettingsPage() {
                             <CardDescription>{t('deleteAccountDesc')}</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <AlertDialog>
+                            <AlertDialog
+                                open={deleteOpen}
+                                onOpenChange={(o) => {
+                                    setDeleteOpen(o);
+                                    if (!o) { setDeletePassword(''); setDeleteError(null); }
+                                }}
+                            >
                                 <AlertDialogTrigger asChild>
-                                    <Button variant="destructive" disabled={deleteBusy || !!user?.deletionRequestedAt}>
+                                    <Button variant="destructive" disabled={!!user?.deletionRequestedAt}>
                                         <Trash2 data-icon="inline-start" />
-                                        {deleteBusy ? t('deleting') : t('deleteAccount')}
+                                        {t('deleteAccount')}
                                     </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
@@ -521,13 +532,25 @@ export default function SettingsPage() {
                                         <AlertDialogTitle>{t('deleteAccountConfirmTitle')}</AlertDialogTitle>
                                         <AlertDialogDescription>{t('deleteAccountConfirmBody')}</AlertDialogDescription>
                                     </AlertDialogHeader>
+                                    <Field>
+                                        <FieldLabel htmlFor="deletePassword">{t('deleteAccountPasswordLabel')}</FieldLabel>
+                                        <Input
+                                            id="deletePassword"
+                                            type="password"
+                                            autoComplete="current-password"
+                                            value={deletePassword}
+                                            onChange={e => setDeletePassword(e.target.value)}
+                                        />
+                                        {deleteError && <p className="text-sm text-destructive">{deleteError}</p>}
+                                    </Field>
                                     <AlertDialogFooter>
                                         <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
                                         <AlertDialogAction
-                                            onClick={handleDeleteAccount}
+                                            onClick={(e) => { e.preventDefault(); handleDeleteAccount(); }}
+                                            disabled={deleteBusy || !deletePassword}
                                             className="bg-destructive text-white hover:bg-destructive/90"
                                         >
-                                            {t('deleteAccountAction')}
+                                            {deleteBusy ? t('deleting') : t('deleteAccountAction')}
                                         </AlertDialogAction>
                                     </AlertDialogFooter>
                                 </AlertDialogContent>
