@@ -49,7 +49,10 @@
     "passwordsDoNotMatch": "Паролі не збігаються",
     "resetMissingToken": "Це посилання недійсне або неповне. Запитайте нове.",
     "resetDoneTitle": "Пароль змінено",
-    "resetDoneDescription": "Ваш пароль скинуто. Перенаправлення до входу…"
+    "resetDoneDescription": "Ваш пароль скинуто. Перенаправлення до входу…",
+    "legalAgree": "Створюючи обліковий запис, ви погоджуєтесь із нашими",
+    "privacyPolicy": "Політикою конфіденційності",
+    "termsOfUse": "Правилами використання"
   },
   "Header": {
     "brand": "Subscree"
@@ -207,7 +210,11 @@
     "deletionScheduled": "Ваш акаунт заплановано до видалення {date}.",
     "restoreAccount": "Відновити акаунт",
     "restoring": "Відновлення…",
-    "deleteAccountPasswordLabel": "Введіть пароль для підтвердження"
+    "deleteAccountPasswordLabel": "Введіть пароль для підтвердження",
+    "legal": "Юридична інформація",
+    "legalDescription": "Ознайомтеся з нашими документами.",
+    "privacyPolicy": "Політика конфіденційності",
+    "termsOfUse": "Правила використання"
   },
   "Language": {
     "en": "English",

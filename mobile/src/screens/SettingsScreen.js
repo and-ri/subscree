@@ -13,6 +13,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useLocaleControl } from '../context/LocaleContext';
 import { PUSH_OPT_IN_KEY } from '../components/PushManager';
 import { requestPushToken, getPushTokenIfGranted } from '../lib/push';
+import { openUrl, PRIVACY_URL, TERMS_URL } from '../lib/legal';
 import { getMe, updateMe, updatePassword, getCurrencies, registerPushToken, unregisterPushToken, deleteAccount, restoreAccount } from '../api';
 import { SUPPORTED_LOCALES } from '../i18n';
 import { VStack } from '@/components/ui/vstack';
@@ -247,14 +248,14 @@ export default function SettingsScreen({ navigation }) {
     { value: 'system', label: t('themeSystem'), icon: 'phone-portrait-outline' },
   ];
 
-  const NavRow = ({ icon, label, onPress }) => (
+  const NavRow = ({ icon, label, onPress, trailingIcon = 'chevron-forward' }) => (
     <Pressable onPress={onPress}>
       <HStack className="items-center justify-between py-3 border-b border-outline-100">
         <HStack space="md" className="items-center">
           <Ionicons name={icon} size={20} color="#737373" />
           <Text className="text-typography-900">{label}</Text>
         </HStack>
-        <Ionicons name="chevron-forward" size={18} color="#a3a3a3" />
+        <Ionicons name={trailingIcon} size={18} color="#a3a3a3" />
       </HStack>
     </Pressable>
   );
@@ -415,6 +416,22 @@ export default function SettingsScreen({ navigation }) {
               {notifySaving && <ButtonSpinner className="mr-2" />}
               <ButtonText>{notifySaving ? t('savingNotifications') : t('saveNotifications')}</ButtonText>
             </Button>
+          </SectionCard>
+
+          {/* Legal */}
+          <SectionCard title={t('legal')} description={t('legalDescription')}>
+            <NavRow
+              icon="shield-checkmark-outline"
+              label={t('privacyPolicy')}
+              onPress={() => openUrl(PRIVACY_URL)}
+              trailingIcon="open-outline"
+            />
+            <NavRow
+              icon="document-text-outline"
+              label={t('termsOfUse')}
+              onPress={() => openUrl(TERMS_URL)}
+              trailingIcon="open-outline"
+            />
           </SectionCard>
 
           {/* Danger zone */}

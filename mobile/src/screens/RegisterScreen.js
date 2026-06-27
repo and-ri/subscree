@@ -5,6 +5,7 @@ import { useTranslations } from 'use-intl';
 import Screen from '../components/Screen';
 import Field from '../components/Field';
 import { useAuth } from '../context/AuthContext';
+import { openUrl, PRIVACY_URL, TERMS_URL } from '../lib/legal';
 import { VStack } from '@/components/ui/vstack';
 import { HStack } from '@/components/ui/hstack';
 import { Heading } from '@/components/ui/heading';
@@ -106,6 +107,19 @@ export default function RegisterScreen({ navigation }) {
               {loading && <ButtonSpinner className="mr-2" />}
               <ButtonText>{loading ? t('registering') : t('register')}</ButtonText>
             </Button>
+
+            <VStack space="xs" className="items-center">
+              <Text className="text-typography-500 text-xs text-center">{t('legalAgree')}</Text>
+              <HStack space="sm" className="items-center justify-center">
+                <Pressable onPress={() => openUrl(TERMS_URL)}>
+                  <Text className="text-primary-600 text-xs">{t('termsOfUse')}</Text>
+                </Pressable>
+                <Text className="text-typography-400 text-xs">·</Text>
+                <Pressable onPress={() => openUrl(PRIVACY_URL)}>
+                  <Text className="text-primary-600 text-xs">{t('privacyPolicy')}</Text>
+                </Pressable>
+              </HStack>
+            </VStack>
 
             <HStack space="xs" className="justify-center">
               <Pressable onPress={() => navigation.navigate('Login')}>

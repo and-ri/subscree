@@ -49,7 +49,10 @@
     "passwordsDoNotMatch": "Passwords do not match",
     "resetMissingToken": "This reset link is invalid or incomplete. Request a new one.",
     "resetDoneTitle": "Password reset",
-    "resetDoneDescription": "Your password has been reset. Redirecting to sign in…"
+    "resetDoneDescription": "Your password has been reset. Redirecting to sign in…",
+    "legalAgree": "By creating an account, you agree to our",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfUse": "Terms of Use"
   },
   "Header": {
     "brand": "Subscree"
@@ -207,7 +210,11 @@
     "deletionScheduled": "Your account is scheduled for deletion on {date}.",
     "restoreAccount": "Restore account",
     "restoring": "Restoring…",
-    "deleteAccountPasswordLabel": "Enter your password to confirm"
+    "deleteAccountPasswordLabel": "Enter your password to confirm",
+    "legal": "Legal",
+    "legalDescription": "Review our policies.",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfUse": "Terms of Use"
   },
   "Language": {
     "en": "English",
